@@ -15,22 +15,43 @@ A powerful CLI tool and Python library for indexing and searching **any** docume
 
 ## Installation
 
-### From Source
+### Recommended: Virtual Environment (Safe, Isolated)
 
 ```bash
 cd /path/to/skills/anydocs
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
 chmod +x anydocs.py
 ```
 
-### Environment Setup
+Then always activate before using:
+```bash
+source venv/bin/activate
+anydocs search "query" --profile vuejs
+```
+
+### Alternative: System-Wide Installation (Requires Caution)
 
 ```bash
-# Optional: Add to PATH for system-wide access
+cd /path/to/skills/anydocs
+bash setup.sh --system-packages  # Will prompt for confirmation
+```
+
+This uses `pip install --break-system-packages`, which can conflict with your system package manager. Only use if you understand the risks.
+
+### Add to PATH (Optional)
+
+With venv active:
+```bash
 export PATH="/path/to/skills/anydocs:$PATH"
 
-# Or create a symlink
-ln -s /path/to/skills/anydocs/anydocs.py /usr/local/bin/anydocs
+# Or create a symlink (requires the venv to be active)
+sudo ln -s /path/to/skills/anydocs/anydocs.py /usr/local/bin/anydocs
 ```
 
 ## Quick Start
@@ -277,6 +298,48 @@ echo $OPENCLAW_GATEWAY_TOKEN
 # Then index with --use-browser flag
 anydocs index <profile> --use-browser --gateway-token $OPENCLAW_GATEWAY_TOKEN
 ```
+
+## Security Considerations
+
+### Browser Rendering (`--use-browser`)
+
+**What it does:**
+- Opens and screenshots arbitrary URLs using OpenClaw's browser
+- Executes JavaScript on those pages
+- Presents an attack surface if misused
+
+**Safety measures built-in:**
+- ✅ **HTTPS-only**: Browser rendering rejects HTTP URLs (enforced)
+- ✅ **Opt-in only**: Requires explicit `--use-browser` flag + token
+- ✅ **Gateway token required**: Your authentication controls access
+- ✅ **Profile validation**: URLs must match configured base_url
+- ✅ **No arbitrary URL injection**: Can't point at random sites
+
+**Best practices:**
+1. **Only use with trusted documentation sites** (e.g., official framework docs)
+2. **Protect your OpenClaw gateway token** (treat like a password)
+3. **Never commit tokens to version control**
+4. **Use `--gateway-token` securely:**
+   ```bash
+   # Load from environment variable (safe)
+   anydocs index vuejs --use-browser --gateway-token $OPENCLAW_GATEWAY_TOKEN
+   
+   # NOT from command line history
+   # anydocs index vuejs --use-browser --gateway-token abc123...
+   ```
+
+### Installation & Package Permissions
+
+**Virtual environment (recommended):**
+- ✅ Isolated, safe, no system-wide changes
+- Default in `setup.sh`
+
+**System-wide installation (`--break-system-packages`):**
+- ⚠️ Can conflict with your system package manager
+- Only use if you understand the risks
+- Requires explicit `--system-packages` flag + user confirmation
+
+For detailed setup, see the Installation section above.
 
 ## Python API
 

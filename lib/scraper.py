@@ -30,7 +30,19 @@ class DiscoveryEngine:
             use_browser: If True, use Playwright or OpenClaw browser tool to render JS-heavy pages
             gateway_url: OpenClaw gateway URL (e.g., http://localhost:18789) for browser rendering
             gateway_token: OpenClaw gateway auth token
+        
+        Security Notes:
+            - base_url and sitemap_url must be HTTPS (HTTP is rejected for browser rendering)
+            - Browser rendering requires explicit opt-in via --use-browser flag
+            - Gateway token should be protected and never committed to repositories
         """
+        # Validate URLs (HTTPS required for browser rendering)
+        if use_browser and gateway_token:
+            if not base_url.startswith("https://"):
+                raise ValueError("Browser rendering requires HTTPS base_url for security. HTTP URLs are not allowed.")
+            if not sitemap_url.startswith("https://"):
+                raise ValueError("Browser rendering requires HTTPS sitemap_url for security. HTTP URLs are not allowed.")
+        
         self.base_url = base_url.rstrip("/")
         self.sitemap_url = sitemap_url
         self.rate_limit = rate_limit
@@ -39,7 +51,7 @@ class DiscoveryEngine:
         self.gateway_token = gateway_token or ""
         self.session = requests.Session()
         self.session.headers.update({
-            "User-Agent": "anydocs/1.0 (+https://github.com/your-org/anydocs)"
+            "User-Agent": "anydocs/1.0 (+https://github.com/Pektech/anydocs-skill)"
         })
     
     def _fetch_url(self, url: str, use_browser: bool = False) -> Optional[str]:
